@@ -302,8 +302,8 @@ def watchBoard():
     img = readImage()
     (h, w, d) = img.shape
     frameSize = (w, h)
-    videoSize = (int(round(w / 2.0)), int(round(h / 2.0)))
-    cv2.imshow("camera", cv2.resize(img, videoSize, 0, 0, cv2.INTER_AREA))
+    imageSize = (int(round(w / 2.0)), int(round(h / 2.0)))
+    cv2.imshow("camera", cv2.resize(img, imageSize, 0, 0, cv2.INTER_AREA))
     roi = np.zeros((h, w), dtype="uint8")
     cv2.rectangle(roi, (0, 0), (w, h), 1, -1)
     
@@ -327,7 +327,7 @@ def watchBoard():
                            6,
                            (0, 0, 255),
                            -1)
-        cv2.imshow("camera", cv2.resize(image, videoSize, 0, 0, cv2.INTER_AREA))
+        cv2.imshow("camera", cv2.resize(image, imageSize, 0, 0, cv2.INTER_AREA))
 
     closeWindow("camera")
     closeWindow("board")
