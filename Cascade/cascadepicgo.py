@@ -10,7 +10,7 @@ frameSize = None
 
 # important file locations:
 
-testimg = 'C:\\Users\\Karl\\Desktop\\watchGo\\WIN_20201228_18_49_56_Pro.jpg'
+testimg = 'Cascade/WIN_20201228_18_49_56_Pro.jpg'
 blackCascadeFile = "Cascade/blackCascade.xml"
 whiteCascadeFile = "Cascade/whiteCascade.xml"
 emptyCascadeFile = "Cascade/emptyCascade.xml"
