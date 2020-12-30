@@ -5,8 +5,8 @@ from os.path import exists
 
 # variables
 
-boardSize = 17 # might also be 9 or 13
-frameSize = None # watchBoard will set this to the size of the video frame
+boardSize = 15
+frameSize = None
 
 # important file locations:
 
@@ -18,7 +18,7 @@ emptyCascadeFile = "Cascade/emptyCascade.xml"
 mapx = None
 mapy = None
 
-# closing the windows that opencv makes is a slightly hacky proposition:
+
 def closeWindow(win="video"):
     cv2.destroyWindow(win)
     for i in range(4):
@@ -37,31 +37,24 @@ def readImage():
     image = image_resize(image, height=600)
     return image
 
-# open the cascade classifiers:
+
 empty_cascade = cv2.CascadeClassifier(emptyCascadeFile)
 black_cascade = cv2.CascadeClassifier(blackCascadeFile)
 white_cascade = cv2.CascadeClassifier(whiteCascadeFile)
 
 
 def readBoard(image):
-    # search the image for a go board whose size is set by the global variable boardSize
-    # this function returns a numpy array that represents a go position: 0 is an empty
-    # intersection, 1 is a black stone, 2 is a white stone
-    # readBoard also returns an array of the board's corners' coordinates in image 
+
 
     output = np.zeros((boardSize, boardSize), dtype="uint8")
     imgCorners = None
 
-    # use the cascade classifiers to find anything that looks like
-    # an empty intersection:
     emptyRectangles = empty_cascade.detectMultiScale(image, 1.035, 2)
     # a black stone:
     blackRectangles = black_cascade.detectMultiScale(image, 1.1, 1)
     # or a white stone:
     whiteRectangles = white_cascade.detectMultiScale(image, 1.15, 1)
-
-    # cascade classifiers return a rectangle around the found object;
-    # the center points of these rectangles are what we actually want:
+    
     empties = []
     blacks = []
     whites = []
@@ -78,8 +71,6 @@ def readBoard(image):
         y = wy + w / 2.0
         whites.append([x, y])
 
-    # for diagnostic purposes, it can be useful to draw all the points
-    # noted by the cascade classifier. uncomment the following to do this:
     for c in empties:
         cv2.circle(image,
                    (int(round(c[0])), int(round(c[1]))),
@@ -100,19 +91,15 @@ def readBoard(image):
                    -1)
     cv2.imshow("dots", image)
 
-    # now find the corners of a rectangle around those spots
-    # that seem most likely to be the board & any stones on it
     group = findGroup(empties + blacks + whites)
     if group is None:
         return output, imgCorners
     hull = cv2.convexHull(np.array(group, dtype="int32"))
     epsilon = 0.001*cv2.arcLength(hull, True)
     approx = cv2.approxPolyDP(hull, epsilon, True)
-    # approx returns maybe a rectangle with a corner or two lopped off
-    imgCorners = fourCorners(approx) # so un-lop those corners
 
+    imgCorners = fourCorners(approx)
     if imgCorners is not None and len(imgCorners) > 3:
-        # unwarp the stone positions and mark them in the output
         flatCorners = np.array([[0, 0],
                                 [boardSize - 1, 0],
                                 [boardSize - 1, boardSize - 1],
@@ -142,8 +129,6 @@ def readBoard(image):
 
 
 def findGroupMembers(maxDistance, i, distances, group):
-    # recursively search for all the spots that are close enough to i,
-    # or are close enough to a spot that's close enough, etc.
     for j in range(len(group)):
         if group[j]:
             pass
@@ -152,9 +137,6 @@ def findGroupMembers(maxDistance, i, distances, group):
             findGroupMembers(maxDistance, j, distances, group)
 
 def findGroup(spots):
-    # find the spots that are bunched together
-
-    # make an array of every spot's distance to every other spot
     length = len(spots)
     distances = np.zeros((length, length), dtype="float32")
     distanceList = []
@@ -165,10 +147,9 @@ def findGroup(spots):
             if d > 0:
                 distanceList.append(d)
 
-    # get the maximum distance to be considered in the main group
     distanceList.sort()
-    numDistances = int((boardSize - 1)**2 * 1.8) # number of distances that should be between spots on a board
-    maxDistance = np.mean(distanceList[0:numDistances]) * 1.75 # a little bigger than that, for luck
+    numDistances = int((boardSize - 1)**2 * 1.8)
+    maxDistance = np.mean(distanceList[0:numDistances]) * 1.75
 
     # find a big enough group
     minGroup = int(boardSize**2 * 0.6)
@@ -185,8 +166,6 @@ def findGroup(spots):
             group = np.zeros((length), dtype="bool_")
 
 def sortPoints(box):
-    # sort the four points of a box so they're in the same order every time
-    # for perspective mapping
     rect = np.zeros((4, 2), dtype = "float32")
 
     s = box.sum(axis = 1)
@@ -200,15 +179,11 @@ def sortPoints(box):
     return rect
 
 def fourCorners(hull):
-    # hull is an approximation of a quadrilateral that may have a corner or two lopped off
-    # the assumption is that the four longest lines in that hull will be segments
-    # of the sides of that un-lopped ideal quadrilateral
     length = len(hull)
 
     if length < 4:
         return []
     
-    # make a list of [line, length]
     allLines = []
     for i in range(length):
         if i == (length - 1):
@@ -218,22 +193,18 @@ def fourCorners(hull):
         d = sqrt((line[0][0] - line[1][0])**2 + (line[0][1] - line[1][1])**2)
         allLines.append([line, d])
 
-    # get the four longest lines
     allLines.sort(key=lambda x: x[1], reverse=True)
     lines = []
     for i in range(4):
         lines.append(allLines[i][0])
 
-    # make equations for each line of the form: y = m*x + c
     equations = []
     for i in lines:
         x_coords, y_coords = zip(*i)
         A = np.vstack([x_coords, np.ones(len(x_coords))]).T
         m, c = np.linalg.lstsq(A, y_coords)[0]
         equations.append([m, c])
-
-    # find intersections of each line with each other line
-    # as long as it's in the frame
+        
     intersections = []
     for i in equations:
         for j in equations:
@@ -258,9 +229,6 @@ def fourCorners(hull):
     else:
         return []
 
-# displaying the board
-
-# make a blank board
 def blankBoard(boardBlockSize):
     yellow = [75, 215, 255]
     black = [0, 0, 0]
@@ -331,18 +299,12 @@ def watchBoard():
 
     imgCorners = None
 
-    # initialize the video display
     img = readImage()
     (h, w, d) = img.shape
     frameSize = (w, h)
     videoSize = (int(round(w / 2.0)), int(round(h / 2.0)))
     cv2.imshow("camera", cv2.resize(img, videoSize, 0, 0, cv2.INTER_AREA))
-
-    
-
-
-    # to start with, look for movement in the whole video frame:
-    roi = np.zeros((h, w), dtype="uint8") # Region Of Interest
+    roi = np.zeros((h, w), dtype="uint8")
     cv2.rectangle(roi, (0, 0), (w, h), 1, -1)
     
     while cv2.waitKey(1) == -1:
@@ -351,13 +313,12 @@ def watchBoard():
 
         board, imgCorners = readBoard(bkg)
         cv2.imshow("board", drawBoard(board))
-        if imgCorners is not None and len(imgCorners) > 3: # look for movement around where the board is:
+        if imgCorners is not None and len(imgCorners) > 3: 
             roi = np.zeros((h, w), dtype="uint8")
             cv2.fillConvexPoly(roi, np.array(imgCorners, dtype="int32"), 1)
             kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (27, 27))
             roi = cv2.dilate(roi, kernel)
 
-        # draw the board corners to the video display:
         image = new.copy()
         if imgCorners is not None:
             for c in imgCorners:
