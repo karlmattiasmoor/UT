@@ -11,9 +11,9 @@ frameSize = None # watchBoard will set this to the size of the video frame
 # important file locations:
 
 testimg = 'C:\\Users\\Karl\\Desktop\\watchGo\\WIN_20201228_18_49_56_Pro.jpg'
-blackCascadeFile = "C:\\Users\\Karl\\Desktop\\watchGo\\blackCascade.xml"
-whiteCascadeFile = "C:\\Users\\Karl\\Desktop\\watchGo\\whiteCascade.xml"
-emptyCascadeFile = "C:\\Users\\Karl\\Desktop\\watchGo\\emptyCascade.xml"
+blackCascadeFile = "Cascade/blackCascade.xml"
+whiteCascadeFile = "Cascade/whiteCascade.xml"
+emptyCascadeFile = "Cascade/emptyCascade.xml"
 
 mapx = None
 mapy = None
