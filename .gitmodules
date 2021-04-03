@@ -1,0 +1,3 @@
+[submodule "neural-chessboard"]
+	path = neural-chessboard
+	url = https://github.com/karlmattiasmoor/neural-chessboard.git
