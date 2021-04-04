@@ -11,9 +11,9 @@ frameSize = None # watchBoard will set this to the size of the video frame
 
 # important file locations:
 
-blackCascadeFile = "C:\\Users\\Karl\\Desktop\\UT\\watchGo\\blackCascade4.xml"
-whiteCascadeFile = "C:\\Users\\Karl\\Desktop\\UT\\watchGo\\whiteCascade2.xml"
-emptyCascadeFile = "C:\\Users\\Karl\\Desktop\\UT\\watchGo\\emptyCascade2.xml"
+blackCascadeFile = "./blackCascade.xml"
+whiteCascadeFile = "./whiteCascade.xml"
+emptyCascadeFile = "./emptyCascade.xml"
 
 def image_resize(image, width = None, height = None, inter = cv2.INTER_AREA):
     dim = None
